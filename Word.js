@@ -1,28 +1,38 @@
 var Letter = require('./Letter.js');
+function Word(word) {
+  var letters = [];
+  var wordArray = word.split('');
+// console.log('word: ' + word);
 
-function Word(randWord){
-    this.arrayWord = randWord.split("");
-    this.spots = [];
-	this.underScore = function () {
-		for (i = 0; i < this.arrayWord.length; i++) {
-			this.spots.push(new Letter(this.arrayWord[i]).inputLetter);
-		}
-    };
-    this.letterGuess = function(letterGuess) {
-        for (i = 0; i < this.arrayWord.length; i++) {
-            if (this.arrayWord[i].letter === letterGuess) {
-                this.arrayWord[i].guessed = true;
-            };
-        };
-    };
-    this.showBlanks = function(currentWord) {
-        let string = '';
-        for (i = 0; i < this.currentWord.length; i++) {
-            string += this.currentWord[i].letterGuessed();
-        };
-        console.log(string);
-    };
+  wordArray.forEach(function(wordLetter) {
+	  letters.push(new Letter(wordLetter));
+  });
+
+  this.guessesRemaining = 10;
+
+  this.guessed = false;
+
+// This was meant to do all the processing if the letter is in the word; however, I couldn't get the userGuess to be added to the Word constructor in any order for it to be checked against the random, but it does work if you guess the random word in order.
+	this.letterInWord = function (userGuess) {
+    this.guessesRemaining--;
+		this.guessed = letters.every(function (letter) {
+      if (userGuess === letter.name.toLowerCase()) {
+        letter.guessed = true;
+      }
+      return letter.guessed;
+    });
+  };
+  this.display = function() {
+    var string = '';
+	  letters.forEach(function(letter) {
+      string += letter.display();
+    });
+    console.log(
+      'Guess the Character\n' +
+        string +
+        '\nGuesses remaining: ' +
+        this.guessesRemaining
+    );
+  };
 }
-
-
 module.exports = Word;

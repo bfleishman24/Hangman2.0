@@ -1,41 +1,77 @@
-var game = require("./game.js");
-var wordCons = require("./word.js");
-var letterCons = require("./letter.js");
-var inquirer = require("inquirer");
-var randoWord = game.randoWord;
-var letterGuessed;
-exports.letter;
-
-var myWord = new wordCons.wordCons(game.randoWord);
-var maxGuesses = 15;
-
-function takeAGuess(){
-	console.log(myWord.toString());
-	if (myWord.guessesMade.length >= maxGuesses){
-		console.log('You have no more guesses. WOMP WOMP.');
-	return; //Game over
-	}
-	inquirer.prompt([{
-		name: 'letter',
-		type: 'text',
-		message: 'Enter a letter:',
-		validate: function(str){
-//			if (str.length != 1) return false;
-			var regEx = new RegExp("^[a-zA-Z\s]{1,1}$");
-			return regEx.test(str);
-				}
-		}]).then(function(letterInput){ //Game control
-				var letter = letterInput.letter; 
-				myWord.findLetter(letter); //Check
-					if(myWord.isComplete()){ 
-					console.log('Yes! It was ' + myWord.toString() + '!');
-					return; //Winner
-					}
-				console.log('-------------------\n'); //If we are here the game did not end. Next guess.
-				console.log('You have ' + (maxGuesses - myWord.guessesMade.length) + ' guesses left.')
-				takeAGuess(); //Recursive call
-				}
-  );
+// The file containing the logic for the course of the game, which depends on Word.js
+// dependency for inquirer npm package
+var inquirer = require('inquirer');
+// dependency for prompt npm package
+var prompt = require('prompt');
+// require Word.js
+var Word = require('./Word.js');
+//-------------------------------------------------------------
+startGame();
+//-------------------------------------------------------------
+function getWord() {
+  var wordList = [
+    'Mark',
+    'Tom',
+    'Travis',
+    'Dumpweed',
+    'FeelingThis',
+    'Obvious',
+    'Down',
+    'Go',
+  ];
+  // picks a random word
+  var randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+  // creates word object
+  var word = new Word(randomWord);
+  return word;
 }
+//-------------------------------------------------------------
+// Start Game Function
+//-------------------------------------------------------------
+function startGame() {
+  console.log('*****************************');
+  console.log('Welcome to Blink 182 Hangman!');
+  console.log('-----------------------------');
+  console.log('Guess a Blink 182 Song!');
+  console.log('-----------------------------');
+  var word = getWord();
+  word.display();
+  getUserGuess(word);
+}
+//-------------------------------------------------------------
+// Guessing Function
+//-------------------------------------------------------------
+function getUserGuess(word) {
+  //   console.log(word);
+  inquirer
+    .prompt([
+      {
+        name: 'letter',
+        message: 'Guess a letter: ',
+        validate: function(input) {
+          return /[a-z]/.test(input.trim().toLowerCase());
+        },
+      },
+    ])
+    .then(function(guess) {
+		// calls the method which does the processing after checking if the letter is in the word
+    //   console.log(guess.letter.toLowerCase());
+      word.letterInWord(guess.letter.toLowerCase());
+    // console.log('word.letterInWord: ' + word.letterInWord(guess.letter.toLowerCase()));
+      word.display();
 
-takeAGuess(); //Start Game
+		if (!word.guessed) {
+        console.log(word.guessed);
+        if (word.guessesRemaining > 0) {
+          //   console.log(word.guessesRemaining);
+          getUserGuess(word);
+        } else {
+          console.log('\nBOOOOOO, YOU LOSE!');
+			startGame();
+			}
+		} else if (word.guessed) {
+			console.log('\nCONGRATULATIONS YOU GUESSED THE SONG!');
+			startGame();
+      }
+    });
+}
